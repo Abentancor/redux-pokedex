@@ -1,6 +1,6 @@
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth"
-import { auth, } from "../../firebase"
-
+import { auth, db} from "../../firebase"
+import { collection, getDoc, doc, setDoc, updateDoc } from 'firebase/firestore';
 const dataInicial = {
     loading:false,
     activo:false
@@ -35,24 +35,42 @@ export default function usuarioReducer (state= dataInicial, action){
 
 export const ingresoUsuarioAccion = () => async(dispatch)=>{
 
-    
-    try {
-        const provider = new GoogleAuthProvider();
-        const res = await signInWithPopup(auth, provider)
-        console.log(res)
-        dispatch({
-            type: USUARIO_EXITO,
-            payload: {
-                uid: res.user.uid,
-                email: res.user.email
-        }})
-            localStorage.setItem('usuario: ', JSON.stringify({
-                uid: res.user.uid,
-                email: res.user.email
+
+  try {
+    const provider = new GoogleAuthProvider();
+    const res = await signInWithPopup(auth, provider);
+
+    const usuario = {
+      uid: res.user.uid,
+      email: res.user.email,
+      displayName: res.user.displayName,
+      photoURL: res.user.photoURL,
+    };
+      localStorage.setItem('usuario', JSON.stringify({
+            uid: res.user.uid,
+            email: res.user.email
     }))
+    
+    const usuarioDB = await getDoc(doc(collection(db, 'usuarios'), usuario.email));
+
+    if (usuarioDB.exists()) {
+      dispatch({
+        type:USUARIO_EXITO,
+        payload: usuarioDB.data()
+      })
+      localStorage.setItem('usuario', JSON.stringify(usuarioDB.data()))
+    }else{
+      await setDoc(doc(collection(db, 'usuarios'), usuario.email), usuario);
+      dispatch({
+        type: USUARIO_EXITO,
+        payload: usuario,
+      });
+      localStorage.setItem('usuario', JSON.stringify(usuario))
+      console.log('usuario creado')
+    }
         
     } catch (error) {
-        
+        console.log(error, 'error')
     }
 }
 
@@ -63,17 +81,41 @@ export const leerUsuarioActivo = ()=>(dispatch)=>{
             payload:JSON.parse(localStorage.getItem('usuario'))
         })
     }
-
 }
 
 export const cerrarSesionUsuario = () => async (dispatch) => {
-    console.log('cerrarSesionUsuario called')
     await signOut(auth)
-    console.log('signOut executed')
     localStorage.removeItem('usuario')
-    console.log('localStorage removed')
     dispatch({
         type: CERRAR_SESION
     })
     console.log('usuario salio')
+}
+
+
+export const actualizarUsuarioNombreAccion = (nombreActualizado) => async(dispatch, getState)=>{
+  dispatch({
+    type:LOADING,
+  })
+  const {user} = getState().usuario
+
+
+  try {
+    await updateDoc(doc(collection(db, 'usuarios'), user.email), {displayName: nombreActualizado})
+
+    const usuario = {
+      ...user,
+      displayName:nombreActualizado
+    }
+
+    dispatch({
+      type:USUARIO_EXITO,
+      payload: usuario
+    })
+
+    localStorage.setItem('usuario', JSON.stringify(usuario))
+  
+  } catch(error){
+    console.log(error)
+  }
 }

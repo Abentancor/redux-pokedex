@@ -3,6 +3,7 @@ import LayoutPublic from "../Layout/LayoutPublic"
 
 import Home from "../Pages/Home"
 import Login from "../Pages/Login"
+import Perfil from "../Pages/Perfil"
 
 export const router = createBrowserRouter([
   {
@@ -17,6 +18,10 @@ export const router = createBrowserRouter([
       {
         path:'/login',
         element:<Login/>
+      },
+      {
+        path:'/perfil',
+        element:<Perfil/>
       }
     ]
   }

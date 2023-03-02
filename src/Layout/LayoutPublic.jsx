@@ -20,15 +20,16 @@ const LayoutPublic = () => {
 
   return (
     <>
-    <header className='text-white uppercase text-2xl font-bold bg-rose-600 flex justify-between p-4'>
-      <Link to='/'><h1>pokedex</h1></Link>
+    <header className='text-white  text-2xl font-bold bg-rose-600 flex justify-between p-4'>
+      <Link to='/'><h1>POKEDEX</h1></Link>
       {
         activo ? (
-          <>
-        <button onClick={() => cerrarSesion()}>cerrar sesion</button>
-          </>
+          <div className=' gap-8 flex'>
+        <Link to='/perfil'>Perfil</Link>
+        <button onClick={() => cerrarSesion()}>Cerrar Sesion</button>
+          </div>
         ) : (
-          <Link to='/login'>login</Link>
+          <Link to='/login'>LOGIN</Link>
         )}
     </header>
 
