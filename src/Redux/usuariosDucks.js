@@ -1,6 +1,11 @@
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth"
-import { auth, db} from "../../firebase"
+import { auth, db, storage} from "../../firebase"
 import { collection, getDoc, doc, setDoc, updateDoc } from 'firebase/firestore';
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+
+
+
+
 const dataInicial = {
     loading:false,
     activo:false
@@ -116,6 +121,43 @@ export const actualizarUsuarioNombreAccion = (nombreActualizado) => async(dispat
     localStorage.setItem('usuario', JSON.stringify(usuario))
   
   } catch(error){
+    console.log(error)
+  }
+}
+
+export const actualizarUsuarioFotoAccion = (fotoActualizada) => async (dispatch, getState) => {
+
+  dispatch({
+    type:LOADING,
+  })
+  
+  const {user} = getState().usuario
+  console.log('haber si llega aca')
+
+  try {
+
+    const storageRef = ref(storage, user.email + '/foto perfil');
+    await uploadBytes (storageRef, fotoActualizada);
+    const imagenURL = await getDownloadURL(storageRef);
+    console.log('desde storage',imagenURL)
+
+    await updateDoc(doc(collection(db, 'usuarios'), user.email), {photoURL: imagenURL})
+
+    const usuario = {
+      ...user,
+      photoURL: imagenURL
+    }
+
+    dispatch({
+      type:USUARIO_EXITO,
+      payload:usuario
+    })
+
+    localStorage.setItem('usuario', JSON.stringify(usuario))
+
+
+    console.log(imagenURL)
+  } catch (error) {
     console.log(error)
   }
 }

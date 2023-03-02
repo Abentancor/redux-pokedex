@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { actualizarUsuarioNombreAccion } from '../Redux/usuariosDucks'
+import { actualizarUsuarioFotoAccion, actualizarUsuarioNombreAccion } from '../Redux/usuariosDucks'
 
 const Perfil = () => {
 
@@ -12,6 +12,7 @@ const Perfil = () => {
 
   const [nombreUsuario, setNombreUsuario] = useState(usuario.displayName)
   const [activarFormulario, setActivarFormulario] = useState(false)
+  const [error, setError] = useState(false)
 
   const actulizarUsuarioNombre = () =>{
     if(!nombreUsuario.trim()){
@@ -22,10 +23,42 @@ const Perfil = () => {
     setActivarFormulario(false)
   } 
 
+  const seleccionarArchivo = imagen =>{
+    console.log(imagen.target.files[0])
+    const imagenCliente = imagen.target.files[0]
+
+    if(imagenCliente === undefined){
+      console.log('imagen no seleccionada')
+      return
+    }
+
+    if(imagenCliente.type === "image/png" || imagenCliente.type === "image/jpg" || imagenCliente.type === "image/jpeg"){
+      dispatch(actualizarUsuarioFotoAccion(imagenCliente))
+
+
+      setError(false)
+    }
+    else{
+      setError(true)
+    }
+  }
 
   return (
-    <div className='w-fit p-6 m-auto bg-slate-400 mt-36 grid text-center justify-items-center font-medium'>
-      <img className='rounded-full border-4 border-sky-700 mb-6 ' src={usuario.photoURL} />
+    <div className='w-fit p-6 m-auto  mt-36 grid text-center justify-items-center font-medium '>
+      <div className='relative  mb-6'>
+          <img className='rounded-full border-4 w-44 h-44 border-sky-700 ' src={usuario.photoURL} />
+          <input 
+          type="file"
+          className='font-bold absolute top-0 right-0 left-0 bottom-0 rounded-full opacity-0 cursor-pointer '
+          onChange={e => seleccionarArchivo(e)}
+          />
+      </div>
+      {
+        error && 
+        <p className=' bg-rose-700 text-white my-4'>
+          Archivo no valido
+        </p>
+      }
       <h3 className='text-xl mb-2'>{usuario.displayName}</h3>
       <p className='text-gray-600 mb-4'>Email: {usuario.email} </p>
       <button className='px-3 py-1 mb-2 bg-rose-600  text-white rounded-lg' onClick={()=>setActivarFormulario(true)}>Editar nombre</button>
